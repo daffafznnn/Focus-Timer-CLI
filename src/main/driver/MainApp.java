@@ -5,7 +5,7 @@
  */
 package main.driver;
 
-import main.logic.MenuHandler;
+import main.menu.MainMenu;
 
 /**
  *
@@ -17,8 +17,8 @@ public class MainApp {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MenuHandler menuHandler = new MenuHandler();
-        menuHandler.tampilkanMenuUtama();
+        MainMenu menuHandler = new MainMenu();
+        menuHandler.display();
     }
     
 }
