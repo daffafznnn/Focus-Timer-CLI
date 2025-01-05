@@ -1,17 +1,22 @@
 package main.models;
 
-public class Task {
-  private String name;
+import java.util.UUID;
 
-  public Task(String name) {
+public class Task {
+  private final String id;
+  private final String name;
+
+  public Task(String id, String name) {
+    this.id = UUID.randomUUID().toString();
     this.name = name;
+  }
+
+  public String getId() {
+    return id;
   }
 
   public String getName() {
     return name;
   }
-
-  public void setName(String name) {
-    this.name = name;
-  }
 }
+

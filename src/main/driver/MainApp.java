@@ -1,21 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main.driver;
 
 import main.menu.MainMenu;
 
-/**
- *
- * @author daffafauzan
- */
 public class MainApp {
 
-    /**
-     * @param args the command line arguments
-     */
+/**
+ * Metode utama untuk menjalankan aplikasi.
+ * Ini akan menampilkan menu utama aplikasi
+ * menggunakan objek MainMenu.
+ *
+ * @param args Argumen baris perintah
+ */
+
     public static void main(String[] args) {
         MainMenu menuHandler = new MainMenu();
         menuHandler.display();

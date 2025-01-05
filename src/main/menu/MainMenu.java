@@ -3,7 +3,7 @@ package main.menu;
 import java.util.Scanner;
 
 public class MainMenu {
-  private Scanner scanner = new Scanner(System.in);
+  private final Scanner scanner = new Scanner(System.in);
 
   public void display() {
     while (true) {
@@ -19,30 +19,29 @@ public class MainMenu {
       System.out.println("=================================");
       System.out.print("Masukkan pilihan Anda: ");
 
-      int choice = scanner.nextInt();
-      scanner.nextLine(); // Clear the buffer
+      String input = scanner.nextLine();
 
-      switch (choice) {
-        case 1:
+      switch (input) {
+        case "1":
           new AddTaskMenu().display();
           break;
-        case 2:
+        case "2":
           new StartWorkSessionMenu().display();
           break;
-        case 3:
+        case "3":
           new SettingsMenu().display();
           break;
-        case 4:
+        case "4":
           new LogActivityMenu().display();
           break;
-        case 5:
+        case "5":
           new PomodoroMenu().display();
           break;
-        case 6:
+        case "6":
           System.out.println("Terima kasih telah menggunakan Focus Timer!");
           return;
         default:
-          System.out.println("Pilihan tidak valid, coba lagi.");
+          System.out.println("Pilihan tidak valid. Silakan coba lagi.");
       }
     }
   }

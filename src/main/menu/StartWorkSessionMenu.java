@@ -2,12 +2,13 @@ package main.menu;
 
 import main.services.TaskService;
 import main.services.TimerService;
+
 import java.util.Scanner;
 
 public class StartWorkSessionMenu {
-  private Scanner scanner = new Scanner(System.in);
-  private TaskService taskService = new TaskService();
-  private TimerService timerService = new TimerService();
+  private final Scanner scanner = new Scanner(System.in);
+  private final TaskService taskService = TaskService.getInstance();
+  private final TimerService timerService = TimerService.getInstance();
 
   public void display() {
     System.out.println("=================================");
@@ -31,10 +32,47 @@ public class StartWorkSessionMenu {
     scanner.nextLine(); // Clear the buffer
 
     if (taskNumber > 0 && taskNumber <= taskService.getTasks().size()) {
-      String selectedTask = taskService.getTasks().get(taskNumber - 1);
-      timerService.startTimer(selectedTask);
+      String selectedTaskId = taskService.getTaskIds().get(taskNumber - 1);
+      timerService.startTimer(selectedTaskId);
+
+      handleTimerControls(selectedTaskId);
     } else {
       System.out.println("Nomor tugas tidak valid.");
     }
   }
+
+  private void handleTimerControls(String taskId) {
+    boolean isRunning = true;
+    while (isRunning) {
+      System.out.println("=================================");
+      System.out.println("1. Pause Timer");
+      System.out.println("2. Resume Timer");
+      System.out.println("3. Stop Timer");
+      System.out.println("0. Kembali ke Menu Utama");
+      System.out.println("=================================");
+      System.out.print("Pilihan Anda: ");
+      int choice = scanner.nextInt();
+      scanner.nextLine(); // Clear the buffer
+
+      switch (choice) {
+        case 1:
+          timerService.pauseTimer();
+          break;
+        case 2:
+          timerService.resumeTimer();
+          break;
+        case 3:
+          timerService.stopTimer();
+          isRunning = false;
+          break;
+        case 0:
+          timerService.stopTimer();
+          isRunning = false;
+          break;
+        default:
+          System.out.println("Pilihan tidak valid.");
+      }
+    }
+  }
 }
+
