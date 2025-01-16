@@ -1,16 +1,19 @@
 package main.services;
 
 import main.models.Task;
+import main.models.TaskLog;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class TaskService {
-  private static TaskService instance; // Singleton instance
-  private List<Task> tasks = new ArrayList<>();
+  private static TaskService instance;
+  private final FileStorageService fileStorageService;
+  private final List<Task> tasks;
 
   private TaskService() {
-  } // Private constructor
+    fileStorageService = new FileStorageService();
+    tasks = fileStorageService.loadTasks();
+  }
 
   public static TaskService getInstance() {
     if (instance == null) {
@@ -19,50 +22,33 @@ public class TaskService {
     return instance;
   }
 
-  public List<Task> getData() {
-    return tasks;
+  public List<Task> getTasks() {
+    return new ArrayList<>(tasks);
   }
 
-  public void addTask(String name) {
-        String id = UUID.randomUUID().toString(); // Membuat ID unik untuk setiap tugas
-        Task task = new Task(id, name);
-        tasks.add(task);
-    }
-
-  public List<String> getTasks() {
-    List<String> taskNames = new ArrayList<>();
-    for (Task task : tasks) {
-      taskNames.add(task.getName());
-    }
-    return taskNames;
+  public void addTask(String taskName) {
+    Task newTask = new Task(taskName);
+    tasks.add(newTask);
+    fileStorageService.saveTasks(tasks);
   }
 
-  public String getTaskNameById(String taskId) {
-    for (Task task : tasks) {
-      if (task.getId().equals(taskId)) {
-        return task.getName();
-      }
-    }
-    return null;
+  public String getTaskNameById(int id) {
+    return tasks.stream()
+        .filter(task -> task.getId() == id)
+        .map(Task::getName)
+        .findFirst()
+        .orElse(null);
   }
 
-  // Mengembalikan daftar ID tugas
-  public List<String> getTaskIds() {
-    List<String> taskIds = new ArrayList<>();
-    for (Task task : tasks) {
-      taskIds.add(task.getId());
-    }
-    return taskIds;
+  public Task getTaskById(int id) {
+    return tasks.stream()
+        .filter(task -> task.getId() == id)
+        .findFirst()
+        .orElse(null);
   }
 
-  // Mencari tugas berdasarkan ID
-  public Task findTaskById(String id) {
-    for (Task task : tasks) {
-      if (task.getId().equals(id)) {
-        return task;
-      }
-    }
-    return null;
+  public TaskLog getTaskLogById(int id) {
+    Task task = getTaskById(id);
+    return task != null ? task.getTaskLog() : null;
   }
 }
-

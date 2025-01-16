@@ -6,10 +6,12 @@ import java.util.List;
 
 public class TaskLogService {
     private static TaskLogService instance;
-    private List<TaskLog> taskLogs;
+    private final List<TaskLog> taskLogs;
+    private final FileStorageService fileStorageService;
 
     private TaskLogService() {
-        this.taskLogs = new ArrayList<>();
+        fileStorageService = new FileStorageService();
+        taskLogs = fileStorageService.loadTaskLogs();
     }
 
     public static TaskLogService getInstance() {
@@ -19,47 +21,45 @@ public class TaskLogService {
         return instance;
     }
 
-    // Menambahkan log aktivitas baru
     public void addTaskLog(TaskLog taskLog) {
         if (taskLog != null) {
             taskLogs.add(taskLog);
+            fileStorageService.saveTaskLogs(taskLogs);
         }
     }
 
-    // Mendapatkan semua log aktivitas
     public List<TaskLog> getAllTaskLogs() {
         return new ArrayList<>(taskLogs);
     }
 
-    // Mencari log berdasarkan ID tugas
     public TaskLog findTaskLogById(String taskId) {
-        for (TaskLog log : taskLogs) {
-            if (log.getTaskId().equals(taskId)) {
-                return log;
-            }
-        }
-        return null;
+        return taskLogs.stream()
+                .filter(log -> log.getTaskId().equals(taskId))
+                .findFirst()
+                .orElse(null);
     }
 
-    // Menghapus log berdasarkan ID tugas
     public boolean removeTaskLogById(String taskId) {
-        return taskLogs.removeIf(log -> log.getTaskId().equals(taskId));
+        boolean removed = taskLogs.removeIf(log -> log.getTaskId().equals(taskId));
+        if (removed) {
+            fileStorageService.saveTaskLogs(taskLogs);
+        }
+        return removed;
     }
 
-    // Menambahkan waktu fokus pada log berdasarkan ID tugas
     public void addFocusTimeById(String taskId, int minutes) {
         TaskLog log = findTaskLogById(taskId);
         if (log != null) {
             log.addFocusTime(minutes);
+            fileStorageService.saveTaskLogs(taskLogs);
         }
     }
 
-    // Menambahkan waktu istirahat pada log berdasarkan ID tugas
     public void addBreakTimeById(String taskId, int minutes) {
         TaskLog log = findTaskLogById(taskId);
         if (log != null) {
             log.addBreakTime(minutes);
+            fileStorageService.saveTaskLogs(taskLogs);
         }
     }
 }
-

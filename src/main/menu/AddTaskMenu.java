@@ -19,8 +19,8 @@ public class AddTaskMenu {
         System.out.println("Tidak ada tugas. Tambahkan tugas baru.");
       } else {
         int index = 1;
-        for (String taskName : taskService.getTasks()) {
-          System.out.println(index++ + ". " + taskName);
+        for (var task : taskService.getTasks()) {
+          System.out.println(index++ + ". " + task.getName());
         }
       }
 
@@ -31,11 +31,11 @@ public class AddTaskMenu {
         return;
       }
 
-      if (!taskName.isBlank()) {
-        taskService.addTask(taskName.trim());
-        System.out.println("Tugas berhasil ditambahkan!");
-      } else {
+      if (taskName.trim().isBlank()) {
         System.out.println("Nama tugas tidak boleh kosong!");
+      } else {
+        taskService.addTask(taskName.trim()); // Menambahkan tugas baru
+        System.out.println("Tugas berhasil ditambahkan!");
       }
     }
   }

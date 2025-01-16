@@ -9,28 +9,65 @@ public class SettingsMenu {
   private final TimerService timerService = TimerService.getInstance();
 
   public void display() {
-    System.out.println("=================================");
-    System.out.println("         PENGATURAN TIMER");
-    System.out.println("=================================");
+    while (true) {
+      System.out.println("=================================");
+      System.out.println("         PENGATURAN TIMER");
+      System.out.println("=================================");
 
-    System.out.println("Pengaturan waktu saat ini:");
-    System.out.println("- Durasi kerja: " + timerService.getWorkDuration() + " menit");
-    System.out.println("- Istirahat pendek: " + timerService.getShortBreak() + " menit");
-    System.out.println("- Istirahat panjang: " + timerService.getLongBreak() + " menit");
+      System.out.println("Pengaturan waktu saat ini:");
+      System.out.println("- Durasi fokus saat ini: " + timerService.getWorkDuration() + " menit");
+      System.out.println("- Durasi istirahat singkat saat ini: " + timerService.getShortBreak() + " menit");
+      System.out.println("- Durasi istirahat panjang saat ini: " + timerService.getLongBreak() + " menit");
+      System.out.println("- Jumlah siklus: " + timerService.getCycles() + " siklus");
 
-    try {
-      System.out.print("Masukkan durasi kerja (menit): ");
-      int workDuration = scanner.nextInt();
-      System.out.print("Masukkan durasi istirahat pendek (menit): ");
-      int shortBreak = scanner.nextInt();
-      System.out.print("Masukkan durasi istirahat panjang (menit): ");
-      int longBreak = scanner.nextInt();
+      System.out.println("Pilih tindakan:");
+      System.out.println("\u001B[34m1. Ubah durasi fokus\u001B[0m");
+      System.out.println("\u001B[34m2. Ubah durasi istirahat singkat\u001B[0m");
+      System.out.println("\u001B[34m3. Ubah durasi istirahat panjang\u001B[0m");
+      System.out.println("\u001B[34m4. Ubah jumlah siklus\u001B[0m");
+      System.out.println("\u001B[34m5. Kembali ke menu utama\u001B[0m");
+      System.out.print("Pilihan: ");
 
-      timerService.setTimerSettings(workDuration, shortBreak, longBreak);
-      System.out.println("Pengaturan berhasil disimpan!");
-    } catch (Exception e) {
-      System.out.println("Input tidak valid. Kembali ke menu utama.");
-      scanner.nextLine(); // Clear invalid input
+      int choice = scanner.nextInt();
+      scanner.nextLine(); // Clear buffer
+
+      switch (choice) {
+        case 1:
+          System.out.print("Masukkan durasi fokus (menit): ");
+          int workDuration = scanner.nextInt();
+          timerService.setTimerSettings(workDuration, timerService.getShortBreak(), timerService.getLongBreak(),
+              timerService.getCycles());
+          System.out.println("Pengaturan berhasil disimpan!");
+          break;
+        case 2:
+          System.out.print("Masukkan durasi istirahat pendek (menit): ");
+          int shortBreak = scanner.nextInt();
+          timerService.setTimerSettings(timerService.getWorkDuration(), shortBreak, timerService.getLongBreak(),
+              timerService.getCycles());
+          System.out.println("Pengaturan berhasil disimpan!");
+          break;
+        case 3:
+          System.out.print("Masukkan durasi istirahat panjang (menit): ");
+          int longBreak = scanner.nextInt();
+          timerService.setTimerSettings(timerService.getWorkDuration(), timerService.getShortBreak(), longBreak,
+              timerService.getCycles());
+          System.out.println("Pengaturan berhasil disimpan!");
+          break;
+        case 4:
+          System.out.print("Masukkan jumlah siklus: ");
+          int cycles = scanner.nextInt();
+          timerService.setTimerSettings(timerService.getWorkDuration(), timerService.getShortBreak(),
+              timerService.getLongBreak(), cycles);
+          System.out.println("Pengaturan berhasil disimpan!");
+          break;
+        case 5:
+          System.out.println("Kembali ke menu utama");
+          return;
+        default:
+          System.out.println("Pilihan tidak valid");
+          break;
+      }
     }
   }
 }
+

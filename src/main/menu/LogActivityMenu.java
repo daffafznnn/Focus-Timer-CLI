@@ -4,7 +4,7 @@ import main.services.TaskLogService;
 import main.models.TaskLog;
 
 public class LogActivityMenu {
-  private TaskLogService taskLogService = TaskLogService.getInstance();
+  private final TaskLogService taskLogService = TaskLogService.getInstance();
 
   public void display() {
     System.out.println("=================================");
@@ -20,4 +20,3 @@ public class LogActivityMenu {
     }
   }
 }
-

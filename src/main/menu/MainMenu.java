@@ -10,12 +10,12 @@ public class MainMenu {
       System.out.println("=================================");
       System.out.println("          FOCUS TIMER");
       System.out.println("=================================");
-      System.out.println("1. Tambahkan Tugas");
-      System.out.println("2. Mulai Sesi Kerja");
-      System.out.println("3. Pengaturan Timer");
-      System.out.println("4. Lihat Log Aktivitas");
-      System.out.println("5. Teknik Pomodoro");
-      System.out.println("6. Keluar");
+      System.out.println("\u001B[34m1. Tambahkan Tugas\u001B[0m");
+      System.out.println("\u001B[34m2. Mulai Sesi Kerja\u001B[0m");
+      System.out.println("\u001B[34m3. Pengaturan Timer\u001B[0m");
+      System.out.println("\u001B[34m4. Lihat Log Aktivitas\u001B[0m");
+      System.out.println("\u001B[34m5. Teknik Pomodoro\u001B[0m");
+      System.out.println("\u001B[34m6. Keluar\u001B[0m");
       System.out.println("=================================");
       System.out.print("Masukkan pilihan Anda: ");
 

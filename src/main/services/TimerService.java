@@ -1,5 +1,6 @@
 package main.services;
 
+import main.models.TaskLog;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,17 +12,19 @@ public class TimerService {
   private int workDuration = 25; // Default work duration in minutes
   private int shortBreak = 5; // Default short break in minutes
   private int longBreak = 15; // Default long break in minutes
+  private int cycles = 4;
 
   private ScheduledExecutorService scheduler;
   private boolean isPaused = false;
   private int remainingTime = 0;
   private String currentTaskId;
 
-  private TaskService taskService = TaskService.getInstance();
-  private TaskLogService taskLogService = TaskLogService.getInstance();
+  private final TaskService taskService = TaskService.getInstance();
+  private final TaskLogService taskLogService = TaskLogService.getInstance();
+  private final NotificationService notificationService = new NotificationService();
   private int pomodoroCycleCount = 0;
 
-  private Scanner scanner = new Scanner(System.in);
+  private final Scanner scanner = new Scanner(System.in);
 
   private TimerService() {
   }
@@ -45,36 +48,39 @@ public class TimerService {
     return longBreak;
   }
 
-  public void setTimerSettings(int workDuration, int shortBreak, int longBreak) {
+  public int getCycles() {
+    return cycles;
+  }
+
+  public void setTimerSettings(int workDuration, int shortBreak, int longBreak, int cycles) {
     this.workDuration = workDuration;
     this.shortBreak = shortBreak;
     this.longBreak = longBreak;
+    this.cycles = cycles;
   }
 
   public void startTimer(String taskId) {
-    if (scheduler != null && !scheduler.isShutdown()) {
+    if (isTimerRunning()) {
       System.out.println("Timer sedang berjalan. Harap hentikan terlebih dahulu.");
       return;
     }
 
-    String taskName = taskService.getTaskNameById(taskId);
+    int taskIdInt = Integer.parseInt(taskId);
+    String taskName = taskService.getTaskNameById(taskIdInt);
     if (taskName == null) {
       System.out.println("Tugas tidak ditemukan.");
       return;
     }
 
     System.out.println("Memulai timer untuk tugas: " + taskName);
-    remainingTime = workDuration * 60;
-    isPaused = false;
-    currentTaskId = taskId;
+    initializeTimer(taskId, workDuration * 60);
 
-    scheduler = Executors.newScheduledThreadPool(1);
+    scheduler = Executors.newScheduledThreadPool(1); // Initialize scheduler here
+
     scheduler.scheduleAtFixedRate(() -> {
       if (!isPaused) {
         if (remainingTime > 0) {
-          int minutes = remainingTime / 60;
-          int seconds = remainingTime % 60;
-          System.out.printf("Waktu tersisa: %02d:%02d\r", minutes, seconds);
+          displayRemainingTime();
           remainingTime--;
         } else {
           System.out.println("\nWaktu kerja selesai!");
@@ -86,7 +92,7 @@ public class TimerService {
   }
 
   public void pauseTimer() {
-    if (scheduler == null || scheduler.isShutdown()) {
+    if (!isTimerRunning()) {
       System.out.println("Timer tidak berjalan.");
       return;
     }
@@ -95,7 +101,7 @@ public class TimerService {
   }
 
   public void resumeTimer() {
-    if (scheduler == null || scheduler.isShutdown()) {
+    if (!isTimerRunning()) {
       System.out.println("Timer tidak berjalan.");
       return;
     }
@@ -113,6 +119,7 @@ public class TimerService {
 
       if (input.equalsIgnoreCase("y")) {
         System.out.println("Tugas telah selesai. Data akan dicatat.");
+        saveTaskLog();
       } else {
         System.out.println("Tugas belum selesai. Anda dapat melanjutkan nanti.");
       }
@@ -123,27 +130,68 @@ public class TimerService {
     }
   }
 
-  private void promptBreakOrFinish(String taskId) {
-    if (pomodoroCycleCount >= 5) {
-      System.out.println("Istirahat panjang dimulai...");
-      remainingTime = longBreak * 60;
+  public void startPomodoro(String taskId) {
+    if (isTimerRunning()) {
+      System.out.println("Timer sedang berjalan. Harap hentikan terlebih dahulu.");
+      return;
+    }
+    int taskIdInt = Integer.parseInt(taskId);
+    String taskName = taskService.getTaskNameById(taskIdInt);
+    if (taskName == null) {
+      System.out.println("Tugas tidak ditemukan.");
+      return;
+    }
+
+    System.out.println("Memulai Teknik Pomodoro untuk tugas: " + taskName);
+    isPaused = false;
+    currentTaskId = taskId;
+
+    scheduler = Executors.newScheduledThreadPool(1); // Initialize scheduler here
+
+    new Thread(() -> {
       try {
-        runBreakTimer("Istirahat panjang selesai!");
+        for (int i = 1; i <= cycles; i++) {
+          System.out.println("Sesi kerja ke-" + i + " dimulai...");
+          initializeTimer(taskId, workDuration * 60);
+          runTimer("Sesi kerja ke-" + i + " selesai!");
+          taskLogService.addFocusTimeById(taskId, workDuration);
+
+          if (i < cycles) {
+            System.out.println("Istirahat pendek dimulai...");
+            initializeTimer(taskId, shortBreak * 60);
+            runBreakTimer("Istirahat pendek selesai!", "src/main/resources/sound.wav");
+            taskLogService.addBreakTimeById(taskId, shortBreak);
+          }
+        }
+
+        System.out.println("Istirahat panjang dimulai...");
+        initializeTimer(taskId, longBreak * 60);
+        runBreakTimer("Istirahat panjang selesai!", "src/main/resources/sound.wav");
+        taskLogService.addBreakTimeById(taskId, longBreak);
+
+        System.out.println("Teknik Pomodoro selesai!");
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        System.out.println("Istirahat panjang terganggu.");
+        System.out.println("Pomodoro dihentikan.");
+      } finally {
+        scheduler.shutdown();
+        saveTaskLog();
+        currentTaskId = null;
       }
+    }).start();
+  }
+
+  private void promptBreakOrFinish(String taskId) {
+    if (pomodoroCycleCount >= cycles) {
+      System.out.println("Istirahat panjang dimulai...");
+      initializeTimer(taskId, longBreak * 60);
+      runBreakTimer("Istirahat panjang selesai!", "src/main/resources/sound.wav");
       taskLogService.addBreakTimeById(taskId, longBreak);
       pomodoroCycleCount = 0;
     } else {
       System.out.println("Istirahat pendek dimulai...");
-      remainingTime = shortBreak * 60;
-      try {
-        runBreakTimer("Istirahat pendek selesai!");
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        System.out.println("Istirahat pendek terganggu.");
-      }
+      initializeTimer(taskId, shortBreak * 60);
+      runBreakTimer("Istirahat pendek selesai!", "src/main/resources/sound.wav");
       taskLogService.addBreakTimeById(taskId, shortBreak);
       pomodoroCycleCount++;
     }
@@ -158,81 +206,48 @@ public class TimerService {
     }
   }
 
-  private void runBreakTimer(String completionMessage) throws InterruptedException {
-    ScheduledExecutorService breakScheduler = Executors.newScheduledThreadPool(1);
-    breakScheduler.scheduleAtFixedRate(() -> {
-      if (remainingTime > 0) {
-        int minutes = remainingTime / 60;
-        int seconds = remainingTime % 60;
-        System.out.printf("Waktu istirahat tersisa: %02d:%02d\r", minutes, seconds);
-        remainingTime--;
-      }
-    }, 0, 1, TimeUnit.SECONDS);
+  private void runBreakTimer(String completionMessage, String soundFile) {
+    notificationService.playSound(soundFile);
 
-    while (remainingTime > 0) {
-      Thread.sleep(1000);
+    System.out.println("Notifikasi suara menyala. Masukkan 's' untuk mematikan suara.");
+    String input = scanner.nextLine();
+
+    if (input.equalsIgnoreCase("s")) {
+      notificationService.stopSound();
     }
 
-    System.out.println("\n" + completionMessage);
-    breakScheduler.shutdown();
-  }
-
-
-  public void startPomodoro(String taskId) {
-    if (scheduler != null && !scheduler.isShutdown()) {
-      System.out.println("Timer sedang berjalan. Harap hentikan terlebih dahulu.");
-      return;
-    }
-    String taskName = taskService.getTaskNameById(taskId);
-    if (taskName == null) {
-      System.out.println("Tugas tidak ditemukan.");
-
-      return;
-    }
-
-    System.out.println("Memulai Teknik Pomodoro untuk tugas: " + taskName);
-    isPaused = false;
-    currentTaskId = taskId;
+    initializeTimer(currentTaskId, remainingTime); // Initialize break timer
 
     scheduler = Executors.newScheduledThreadPool(1);
-    new Thread(() -> {
-      try {
-        for (int i = 1; i <= 4; i++) {
-          System.out.println("Sesi kerja ke-" + i + " dimulai...");
-          remainingTime = workDuration * 60;
-          runTimer("Sesi kerja ke-" + i + " selesai!");
-          taskLogService.addFocusTimeById(taskId, workDuration);
-
-          if (i < 4) {
-            System.out.println("Istirahat pendek dimulai...");
-            remainingTime = shortBreak * 60;
-            runTimer("Istirahat pendek selesai!");
-            taskLogService.addBreakTimeById(taskId, shortBreak);
-          }
+    scheduler.scheduleAtFixedRate(() -> {
+      if (!isPaused) {
+        if (remainingTime > 0) {
+          displayRemainingTime();
+          remainingTime--;
+        } else {
+          System.out.println("\n" + completionMessage);
+          scheduler.shutdown();
+          promptContinueOrFinish();
         }
-
-        System.out.println("Istirahat panjang dimulai...");
-        remainingTime = longBreak * 60;
-        runTimer("Istirahat panjang selesai!");
-        taskLogService.addBreakTimeById(taskId, longBreak);
-
-        System.out.println("Teknik Pomodoro selesai!");
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        System.out.println("Pomodoro dihentikan.");
-      } finally {
-        scheduler.shutdown();
-        currentTaskId = null;
       }
-    }).start();
+    }, 0, 1, TimeUnit.SECONDS);
+  }
+
+  private void promptContinueOrFinish() {
+    System.out.println("Apakah Anda ingin melanjutkan fokus? (y/n)");
+    String input = scanner.nextLine();
+
+    if (input.equalsIgnoreCase("y")) {
+      startTimer(currentTaskId);
+    } else {
+      stopTimer();
+    }
   }
 
   private void runTimer(String completionMessage) throws InterruptedException {
     scheduler.scheduleAtFixedRate(() -> {
       if (!isPaused && remainingTime > 0) {
-        int minutes = remainingTime / 60;
-        int seconds = remainingTime % 60;
-        System.out.printf("Waktu tersisa: %02d:%02d\r", minutes, seconds);
+        displayRemainingTime();
         remainingTime--;
       }
     }, 0, 1, TimeUnit.SECONDS);
@@ -242,5 +257,28 @@ public class TimerService {
     }
     System.out.println("\n" + completionMessage);
   }
-}
 
+  private void initializeTimer(String taskId, int duration) {
+    remainingTime = duration;
+    isPaused = false;
+    currentTaskId = taskId;
+  }
+
+  private void displayRemainingTime() {
+    int minutes = remainingTime / 60;
+    int seconds = remainingTime % 60;
+    System.out.printf("Waktu tersisa: %02d:%02d\r", minutes, seconds);
+  }
+
+  private boolean isTimerRunning() {
+    return scheduler != null && !scheduler.isShutdown();
+  }
+
+  private void saveTaskLog() {
+    int taskIdInt = Integer.parseInt(currentTaskId);
+    TaskLog taskLog = taskService.getTaskLogById(taskIdInt);
+    if (taskLog != null) {
+      taskLogService.addTaskLog(taskLog);
+    }
+  }
+}

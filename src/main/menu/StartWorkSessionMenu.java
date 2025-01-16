@@ -1,5 +1,6 @@
 package main.menu;
 
+import main.models.Task;
 import main.services.TaskService;
 import main.services.TimerService;
 
@@ -22,8 +23,9 @@ public class StartWorkSessionMenu {
 
     System.out.println("Daftar Tugas:");
     int index = 1;
-    for (String task : taskService.getTasks()) {
-      System.out.println(index + ". " + task);
+    // Menampilkan tugas beserta ID
+    for (Task task : taskService.getTasks()) {
+      System.out.println(index + ". " + task.getId() + ": " + task.getName());
       index++;
     }
 
@@ -32,7 +34,8 @@ public class StartWorkSessionMenu {
     scanner.nextLine(); // Clear the buffer
 
     if (taskNumber > 0 && taskNumber <= taskService.getTasks().size()) {
-      String selectedTaskId = taskService.getTaskIds().get(taskNumber - 1);
+      Task selectedTask = taskService.getTasks().get(taskNumber - 1);
+      String selectedTaskId = String.valueOf(selectedTask.getId());
       timerService.startTimer(selectedTaskId);
 
       handleTimerControls(selectedTaskId);
@@ -75,4 +78,3 @@ public class StartWorkSessionMenu {
     }
   }
 }
-
