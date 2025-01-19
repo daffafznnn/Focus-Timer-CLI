@@ -1,1 +1,2 @@
-6|koding
+1|koding
+2|belajar_java

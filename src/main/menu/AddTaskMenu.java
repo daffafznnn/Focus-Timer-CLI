@@ -1,6 +1,7 @@
 package main.menu;
 
 import main.services.TaskService;
+import main.models.Task;
 
 import java.util.Scanner;
 
@@ -19,7 +20,8 @@ public class AddTaskMenu {
         System.out.println("Tidak ada tugas. Tambahkan tugas baru.");
       } else {
         int index = 1;
-        for (var task : taskService.getTasks()) {
+        // Ganti 'var' dengan tipe eksplisit (misalnya Task)
+        for (Task task : taskService.getTasks()) {
           System.out.println(index++ + ". " + task.getName());
         }
       }
@@ -31,12 +33,12 @@ public class AddTaskMenu {
         return;
       }
 
-      if (taskName.trim().isBlank()) {
+     if (taskName.trim().isEmpty()) {
         System.out.println("Nama tugas tidak boleh kosong!");
-      } else {
-        taskService.addTask(taskName.trim()); // Menambahkan tugas baru
-        System.out.println("Tugas berhasil ditambahkan!");
-      }
+    } else {
+      taskService.addTask(taskName.trim()); // Menambahkan tugas baru
+      System.out.println("Tugas berhasil ditambahkan!");
+    }
     }
   }
 }

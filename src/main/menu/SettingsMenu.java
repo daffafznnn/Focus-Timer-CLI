@@ -40,7 +40,7 @@ public class SettingsMenu {
           System.out.println("Pengaturan berhasil disimpan!");
           break;
         case 2:
-          System.out.print("Masukkan durasi istirahat pendek (menit): ");
+          System.out.print("Masukkan durasi istirahat singkat (menit): ");
           int shortBreak = scanner.nextInt();
           timerService.setTimerSettings(timerService.getWorkDuration(), shortBreak, timerService.getLongBreak(),
               timerService.getCycles());
@@ -70,4 +70,3 @@ public class SettingsMenu {
     }
   }
 }
-
