@@ -43,11 +43,15 @@ public class TaskLog {
   }
 
   public void addFocusTime(int minutes) {
-    this.focusTime += minutes;
+    if (minutes > 0) {
+      this.focusTime += minutes;
+    }
   }
 
   public void addBreakTime(int minutes) {
-    this.breakTime += minutes;
+    if (minutes > 0) {
+      this.breakTime += minutes;
+    }
   }
 
   private String getCurrentTimestamp() {

@@ -10,15 +10,19 @@ import main.models.TaskLog;
 public class TimerService {
   private static TimerService instance;
 
-  private int workDuration = 1; // Default work duration in minutes
-  private int shortBreak = 1; // Default short break in minutes
-  private int longBreak = 2; // Default long break in minutes
-  private int cycles = 4;
+  private int workDuration = 1; // Durasi kerja default dalam menit
+  private int shortBreak = 1; // Durasi istirahat pendek dalam menit
+  private int longBreak = 2; // Durasi istirahat panjang dalam menit
+  private int cycles = 4; // Jumlah siklus fokus
 
   private ScheduledExecutorService scheduler;
   private boolean isPaused = false;
   private int remainingTime = 0;
+  private int currentCycle = 1;
   private String currentTaskId;
+  private String currentTaskName;
+  private int totalFocusDuration = 0; // Total waktu fokus yang tercatat
+  private int totalBreakDuration = 0; // Total waktu istirahat yang tercatat
 
   private final TaskService taskService = TaskService.getInstance();
   private final TaskLogService taskLogService = TaskLogService.getInstance();
@@ -65,72 +69,101 @@ public class TimerService {
       return;
     }
 
-    int taskIdInt = Integer.parseInt(taskId);
-    String taskName = taskService.getTaskNameById(taskIdInt);
+    String taskName = taskService.getTaskNameById(Integer.parseInt(taskId));
     if (taskName == null) {
       System.out.println("Tugas tidak ditemukan.");
       return;
     }
 
+    currentTaskId = taskId;
+    currentTaskName = taskName;
     System.out.println("Memulai timer untuk tugas: " + taskName);
-    final int[] cycleCount = { 0 };
 
-    while (cycleCount[0] < cycles) {
-      initializeTimer(taskId, workDuration * 60);
+    while (true) {
+      System.out.println("\nSesi fokus ke-" + currentCycle + " dimulai.");
+      initializeTimer(workDuration * 60);
+      runTimer("fokus");
 
-      scheduler = Executors.newScheduledThreadPool(1); // Initialize scheduler here
+      // Setelah sesi fokus selesai, mainkan suara notifikasi
+      notificationService.playSound("src/main/resources/sound.wav");
+      System.out.println("\nWaktu fokus habis! Tekan 'enter' untuk menghentikan suara.");
+      scanner.nextLine(); // Tunggu pengguna menekan enter untuk menghentikan suara
+      notificationService.stopSound(); // Hentikan suara setelah enter
 
-      scheduler.scheduleAtFixedRate(() -> {
-        if (!isPaused) {
-          if (remainingTime > 0) {
-            displayRemainingTime();
-            remainingTime--;
-          } else {
-            notificationService.playSound("src/main/resources/sound.wav");
-            System.out.println("Tekan 'enter' untuk menghentikan suara.");
-            scanner.nextLine(); // Wait for user input
-            notificationService.stopSound();
-            System.out.println("\nWaktu Habis!");
-            taskLogService.addFocusTimeById(taskId, workDuration);
-            stopTimer();
-            cycleCount[0]++;
-          }
+      // Lanjutkan ke sesi istirahat setelah suara dihentikan
+      if (currentCycle < cycles) {
+        System.out.println("\nSesi fokus selesai. Istirahat pendek dimulai.");
+        initializeTimer(shortBreak * 60);
+        runTimer("istirahat pendek");
+      } else {
+        System.out.println("\nSemua siklus selesai. Istirahat panjang dimulai.");
+        initializeTimer(longBreak * 60);
+        runTimer("istirahat panjang");
+        currentCycle = 1; // Reset siklus setelah istirahat panjang
+      }
+
+      // Setelah sesi istirahat selesai, tampilkan pilihan
+      if (!promptContinueOrFinish()) {
+        break;
+      }
+
+      currentCycle++;
+    }
+
+    System.out.println("Timer selesai. Semua data telah dicatat.");
+  }
+
+  private void runTimer(String type) {
+    scheduler = Executors.newSingleThreadScheduledExecutor();
+    scheduler.scheduleAtFixedRate(() -> {
+      if (!isPaused) {
+        if (remainingTime > 0) {
+          displayRemainingTime();
+          remainingTime--;
+        } else {
+          stopTimer();
+          handleTimerCompletion(type); // Menangani akhir timer
         }
-      }, 0, 1, TimeUnit.SECONDS);
+      }
+    }, 0, 1, TimeUnit.SECONDS);
 
-      if (cycleCount[0] < cycles) {
-        System.out.println("Istirahat pendek dimulai...");
-        initializeTimer(taskId, shortBreak * 60);
-        startBreakTimer("Istirahat pendek selesai!", "src/main/resources/sound.wav");
-        taskLogService.addBreakTimeById(taskId, shortBreak);
+    while (remainingTime > 0) {
+      try {
+        Thread.sleep(1000); // Cegah eksekusi langsung
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
       }
     }
-
-    System.out.println("Istirahat panjang dimulai...");
-    initializeTimer(taskId, longBreak * 60);
-    startBreakTimer("Istirahat panjang selesai!", "src/main/resources/sound.wav");
-    taskLogService.addBreakTimeById(taskId, longBreak);
   }
 
-  private void startBreakTimer(String completionMessage, String soundFile) {
-    notificationService.playSound(soundFile);
+  private void handleTimerCompletion(String type) {
+    int elapsedTime = (type.equals("fokus") ? (workDuration * 60)
+        : (type.equals("istirahat pendek") ? shortBreak * 60 : longBreak * 60)) - remainingTime;
+    int elapsedMinutes = elapsedTime / 60;
 
-    System.out.println("\u001B[31mNotifikasi suara menyala. Tekan 'enter' untuk menghentikan suara!\u001B[0m");
-    scanner.nextLine(); // Tunggu input dari pengguna
-    notificationService.stopSound();
-
-    System.out.println("\n" + completionMessage);
-    promptContinueOrFinish();
-  }
-
-  private void promptContinueOrFinish() {
-    System.out.println("Apakah Anda ingin melanjutkan tugas ini? (y/n)");
-    String input = scanner.nextLine();
-    if (input.equalsIgnoreCase("y")) {
-      startTimer(currentTaskId);
+    if (type.equals("fokus")) {
+      totalFocusDuration += elapsedMinutes;
+      System.out.println("Sesi fokus selesai: " + elapsedMinutes + " menit ditambahkan.");
     } else {
-      stopTimer();
+      totalBreakDuration += elapsedMinutes;
+      System.out.println("Sesi istirahat selesai: " + elapsedMinutes + " menit ditambahkan.");
     }
+  }
+
+  private boolean promptContinueOrFinish() {
+    System.out.println("\nSelesai istirahat?");
+    System.out.println("\u001B[34m1. Lanjutkan ke sesi berikutnya\u001B[0m");
+    System.out.println("\u001B[34m2. Selesaikan tugas dan simpan log\u001B[0m");
+    System.out.println("Pilihan Anda: ");
+    String input = scanner.nextLine().trim();
+
+    if (input.equals("1")) {
+      return true; // Lanjutkan ke sesi berikutnya
+    } else if (input.equals("2")) {
+      saveTaskLog(); // Simpan log tugas
+      return false; // Selesai
+    }
+    return true;
   }
 
   private void displayRemainingTime() {
@@ -139,49 +172,17 @@ public class TimerService {
     System.out.printf("\rWaktu tersisa: %02d:%02d", minutes, seconds);
   }
 
-  public void pauseTimer() {
-    if (!isTimerRunning()) {
-      System.out.println("Timer tidak berjalan.");
-      return;
-    }
-    isPaused = true;
-    System.out.println("Timer dijeda.");
-  }
-
-  public void resumeTimer() {
-    if (!isTimerRunning()) {
-      System.out.println("Timer tidak berjalan.");
-      return;
-    }
-    isPaused = false;
-    System.out.println("Timer dilanjutkan.");
-  }
-
-  public void stopTimer() {
-    if (scheduler != null) {
-      scheduler.shutdown();
-      scheduler = null;
-
-      System.out.println("Apakah tugas telah selesai? (y/n)");
-      String input = scanner.nextLine();
-
-      if (input.equalsIgnoreCase("y")) {
-        System.out.println("Tugas telah selesai. Data akan dicatat.");
-        saveTaskLog();
-      } else {
-        System.out.println("Tugas belum selesai. Anda dapat melanjutkan nanti.");
-      }
-
-      currentTaskId = null;
-    } else {
-      System.out.println("Timer tidak berjalan.");
-    }
-  }
-
-  private void initializeTimer(String taskId, int duration) {
+  private void initializeTimer(int duration) {
     remainingTime = duration;
     isPaused = false;
-    currentTaskId = taskId;
+  }
+
+  private void stopTimer() {
+    if (scheduler != null) {
+      scheduler.shutdownNow();
+      scheduler = null;
+      remainingTime = 0;
+    }
   }
 
   private boolean isTimerRunning() {
@@ -189,10 +190,18 @@ public class TimerService {
   }
 
   private void saveTaskLog() {
-    int taskIdInt = Integer.parseInt(currentTaskId);
-    TaskLog taskLog = taskService.getTaskLogById(taskIdInt);
-    if (taskLog != null) {
-      taskLogService.addTaskLog(taskLog);
+    if (totalFocusDuration > 0 || totalBreakDuration > 0) {
+      taskLogService.updateTaskLog(currentTaskName, totalFocusDuration, totalBreakDuration);
+      System.out.println("Log aktivitas disimpan: " +
+          "Fokus: " + totalFocusDuration + " menit, " +
+          "Istirahat: " + totalBreakDuration + " menit.");
+    } else {
+      System.out.println("Tidak ada aktivitas yang dicatat.");
     }
+
+    // Reset durasi setelah log disimpan
+    totalFocusDuration = 0;
+    totalBreakDuration = 0;
   }
+
 }

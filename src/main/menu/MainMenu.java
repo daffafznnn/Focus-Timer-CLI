@@ -14,7 +14,7 @@ public class MainMenu {
       System.out.println("\u001B[34m2. Mulai Sesi Kerja\u001B[0m");
       System.out.println("\u001B[34m3. Pengaturan Timer\u001B[0m");
       System.out.println("\u001B[34m4. Lihat Log Aktivitas\u001B[0m");
-      System.out.println("\u001B[34m5. Teknik Pomodoro\u001B[0m");
+      System.out.println("\u001B[34m5. Tentang Teknik Pomodoro\u001B[0m");
       System.out.println("\u001B[34m6. Keluar\u001B[0m");
       System.out.println("=================================");
       System.out.print("Masukkan pilihan Anda: ");
