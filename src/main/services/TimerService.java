@@ -5,8 +5,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import main.models.TaskLog;
-
 public class TimerService {
   private static TimerService instance;
 
@@ -143,10 +141,8 @@ public class TimerService {
 
     if (type.equals("fokus")) {
       totalFocusDuration += elapsedMinutes;
-      System.out.println("Sesi fokus selesai: " + elapsedMinutes + " menit ditambahkan.");
     } else {
       totalBreakDuration += elapsedMinutes;
-      System.out.println("Sesi istirahat selesai: " + elapsedMinutes + " menit ditambahkan.");
     }
   }
 
@@ -154,7 +150,7 @@ public class TimerService {
     System.out.println("\nSelesai istirahat?");
     System.out.println("\u001B[34m1. Lanjutkan ke sesi berikutnya\u001B[0m");
     System.out.println("\u001B[34m2. Selesaikan tugas dan simpan log\u001B[0m");
-    System.out.println("Pilihan Anda: ");
+    System.out.print("Pilihan Anda: ");
     String input = scanner.nextLine().trim();
 
     if (input.equals("1")) {
