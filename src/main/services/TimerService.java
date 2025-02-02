@@ -8,9 +8,9 @@ import java.util.concurrent.TimeUnit;
 public class TimerService {
   private static TimerService instance;
 
-  private int workDuration = 1; // Durasi kerja default dalam menit
-  private int shortBreak = 1; // Durasi istirahat pendek dalam menit
-  private int longBreak = 2; // Durasi istirahat panjang dalam menit
+  private int workDuration = 25; // Durasi kerja default dalam menit
+  private int shortBreak = 5; // Durasi istirahat pendek dalam menit
+  private int longBreak = 15; // Durasi istirahat panjang dalam menit
   private int cycles = 4; // Jumlah siklus fokus
 
   private ScheduledExecutorService scheduler;
