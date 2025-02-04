@@ -150,6 +150,7 @@ public class TimerService {
     System.out.println("\nSelesai istirahat?");
     System.out.println("\u001B[34m1. Lanjutkan ke siklus berikutnya\u001B[0m");
     System.out.println("\u001B[34m2. Selesaikan tugas\u001B[0m");
+    System.out.println("\u001B[34m3. Jeda untuk sementara\u001B[0m");
     System.out.print("Pilihan Anda: ");
     String input = scanner.nextLine().trim();
 
@@ -158,8 +159,52 @@ public class TimerService {
     } else if (input.equals("2")) {
       saveTaskLog(); // Simpan log tugas
       return false; // Selesai
+    } else if (input.equals("3")) {
+      pauseTimer(); // Jeda timer
+      System.out.println("Timer dihentikan. Tekan 'enter' untuk melanjutkan.");
+      scanner.nextLine(); // Tunggu pengguna menekan enter
+      System.out.println("\nSelesai istirahat?");
+      System.out.println("\u001B[34m1. Lanjutkan ke siklus berikutnya\u001B[0m");
+      System.out.println("\u001B[34m2. Selesaikan tugas\u001B[0m");
+      System.out.println("\u001B[34m3. Jeda untuk sementara\u001B[0m");
+      System.out.print("Pilihan Anda: ");
+      input = scanner.nextLine().trim();
+
+      if (input.equals("1")) {
+        resumeTimer(); // Mulai kembali
+        return true;
+      } else if (input.equals("2")) {
+        saveTaskLog(); // Simpan log tugas
+        return false; // Selesai
+      } else if (input.equals("3")) {
+        pauseTimer(); // Jeda timer kembali
+        System.out.println("Timer dihentikan. Tekan 'enter' untuk melanjutkan.");
+        scanner.nextLine(); // Tunggu pengguna menekan enter
+        System.out.println("\nSelesai istirahat?");
+        System.out.println("\u001B[34m1. Lanjutkan ke siklus berikutnya\u001B[0m");
+        System.out.println("\u001B[34m2. Selesaikan tugas\u001B[0m");
+        System.out.println("\u001B[34m3. Jeda untuk sementara\u001B[0m");
+        System.out.print("Pilihan Anda: ");
+        input = scanner.nextLine().trim();
+
+        if (input.equals("1")) {
+          resumeTimer(); // Mulai kembali
+          return true;
+        } else if (input.equals("2")) {
+          saveTaskLog(); // Simpan log tugas
+          return false; // Selesai
+        }
+      }
     }
     return true;
+  }
+
+  public void pauseTimer() {
+    isPaused = true;
+  }
+
+  public void resumeTimer() {
+    isPaused = false;
   }
 
   private void displayRemainingTime() {
