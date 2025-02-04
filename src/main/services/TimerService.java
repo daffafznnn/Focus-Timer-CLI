@@ -148,8 +148,8 @@ public class TimerService {
 
   private boolean promptContinueOrFinish() {
     System.out.println("\nSelesai istirahat?");
-    System.out.println("\u001B[34m1. Lanjutkan ke sesi berikutnya\u001B[0m");
-    System.out.println("\u001B[34m2. Selesaikan tugas dan simpan log\u001B[0m");
+    System.out.println("\u001B[34m1. Lanjutkan ke siklus berikutnya\u001B[0m");
+    System.out.println("\u001B[34m2. Selesaikan tugas\u001B[0m");
     System.out.print("Pilihan Anda: ");
     String input = scanner.nextLine().trim();
 

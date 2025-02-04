@@ -38,11 +38,19 @@ public class MainMenu {
           new PomodoroMenu().display();
           break;
         case "6":
-          System.out.println("Terima kasih telah menggunakan Focus Timer!");
-          return;
+          System.out.print("Apakah anda yakin ingin keluar? (y/n): ");
+          String confirmExit = scanner.nextLine();
+          if (confirmExit.equalsIgnoreCase("y")) {
+            System.out.println("Terima kasih telah menggunakan Focus Timer!");
+            return;
+          } else {
+            System.out.println("Kembali ke menu utama.");
+          }
+          break;
         default:
           System.out.println("Pilihan tidak valid. Silakan coba lagi.");
       }
     }
   }
 }
+

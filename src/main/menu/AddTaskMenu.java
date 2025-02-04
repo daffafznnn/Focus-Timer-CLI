@@ -30,15 +30,21 @@ public class AddTaskMenu {
       String taskName = scanner.nextLine();
 
       if (taskName.equalsIgnoreCase("exit")) {
-        return;
+        break;
       }
 
-     if (taskName.trim().isEmpty()) {
+      if (taskName.trim().isEmpty()) {
         System.out.println("Nama tugas tidak boleh kosong!");
-    } else {
-      taskService.addTask(taskName.trim()); // Menambahkan tugas baru
-      System.out.println("Tugas berhasil ditambahkan!");
-    }
+      } else {
+        taskService.addTask(taskName.trim()); // Menambahkan tugas baru
+        System.out.println("Tugas berhasil ditambahkan!");
+        System.out.print("Apakah Anda ingin kembali ke halaman utama? (y/n): ");
+        String input = scanner.nextLine().trim().toLowerCase();
+        if (input.equals("y")) {
+          return;
+        }
+      }
     }
   }
 }
+
