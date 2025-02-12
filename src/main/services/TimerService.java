@@ -28,9 +28,11 @@ public class TimerService {
 
   private final Scanner scanner = new Scanner(System.in);
 
+  /** Konstruktor privat untuk mencegah instansiasi langsung dari luar kelas */
   private TimerService() {
   }
 
+  /** Mengembalikan instance tunggal dari TimerService */
   public static TimerService getInstance() {
     if (instance == null) {
       instance = new TimerService();
@@ -38,22 +40,30 @@ public class TimerService {
     return instance;
   }
 
+  /** Metode getter untuk mendapatkan durasi kerja */
   public int getWorkDuration() {
     return workDuration;
   }
 
+  /** Metode getter untuk mendapatkan durasi istirahat pendek */
   public int getShortBreak() {
     return shortBreak;
   }
 
+  /** Metode getter untuk mendapatkan durasi istirahat panjang */
   public int getLongBreak() {
     return longBreak;
   }
 
+  /** Metode getter untuk mendapatkan jumlah siklus fokus */
   public int getCycles() {
     return cycles;
   }
 
+  /**
+   * Mengatur durasi kerja, durasi istirahat pendek, durasi istirahat panjang, dan
+   * jumlah siklus fokus
+   */
   public void setTimerSettings(int workDuration, int shortBreak, int longBreak, int cycles) {
     this.workDuration = workDuration;
     this.shortBreak = shortBreak;
@@ -61,6 +71,7 @@ public class TimerService {
     this.cycles = cycles;
   }
 
+  /** Memulai timer untuk tugas yang diberikan */
   public void startTimer(String taskId) {
     if (isTimerRunning()) {
       System.out.println("Timer sedang berjalan. Harap hentikan terlebih dahulu.");
@@ -111,6 +122,7 @@ public class TimerService {
     System.out.println("Timer selesai. Semua data telah dicatat.");
   }
 
+  /** Menjalankan timer untuk jenis sesi yang diberikan (fokus atau istirahat) */
   private void runTimer(String type) {
     scheduler = Executors.newSingleThreadScheduledExecutor();
     scheduler.scheduleAtFixedRate(() -> {
@@ -134,6 +146,7 @@ public class TimerService {
     }
   }
 
+  /** Menangani akhir dari sesi timer */
   private void handleTimerCompletion(String type) {
     int elapsedTime = (type.equals("fokus") ? (workDuration * 60)
         : (type.equals("istirahat pendek") ? shortBreak * 60 : longBreak * 60)) - remainingTime;
@@ -146,6 +159,7 @@ public class TimerService {
     }
   }
 
+  /** Menampilkan pilihan kepada pengguna setelah sesi istirahat selesai */
   private boolean promptContinueOrFinish() {
     System.out.println("\nSelesai istirahat?");
     System.out.println("\u001B[34m1. Lanjutkan ke siklus berikutnya\u001B[0m");
@@ -199,25 +213,36 @@ public class TimerService {
     return true;
   }
 
+  /** Menjeda timer dengan mengatur isPaused menjadi true */
   public void pauseTimer() {
     isPaused = true;
   }
 
+  /** Melanjutkan timer dengan mengatur isPaused menjadi false */
   public void resumeTimer() {
     isPaused = false;
   }
 
+  /** Menampilkan waktu yang tersisa dalam format menit dan detik */
   private void displayRemainingTime() {
     int minutes = remainingTime / 60;
     int seconds = remainingTime % 60;
     System.out.printf("\rWaktu tersisa: %02d:%02d", minutes, seconds);
   }
 
+  /**
+   * Menginisialisasi timer dengan durasi yang diberikan dan mengatur isPaused
+   * menjadi false
+   */
   private void initializeTimer(int duration) {
     remainingTime = duration;
     isPaused = false;
   }
 
+  /**
+   * Menghentikan timer dengan menghentikan ScheduledExecutorService dan mereset
+   * waktu yang tersisa
+   */
   private void stopTimer() {
     if (scheduler != null) {
       scheduler.shutdownNow();
@@ -226,10 +251,12 @@ public class TimerService {
     }
   }
 
+  /** Memeriksa apakah timer sedang berjalan */
   private boolean isTimerRunning() {
     return scheduler != null && !scheduler.isShutdown();
   }
 
+  /** Menyimpan log tugas dengan total durasi fokus dan istirahat yang tercatat */
   private void saveTaskLog() {
     if (totalFocusDuration > 0 || totalBreakDuration > 0) {
       taskLogService.updateTaskLog(currentTaskName, totalFocusDuration, totalBreakDuration);

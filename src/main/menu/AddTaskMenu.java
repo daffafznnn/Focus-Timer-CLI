@@ -5,10 +5,16 @@ import main.models.Task;
 
 import java.util.Scanner;
 
+/**
+ * Menu untuk menambahkan tugas baru
+ */
 public class AddTaskMenu {
   private final Scanner scanner = new Scanner(System.in);
   private final TaskService taskService = TaskService.getInstance();
 
+  /**
+   * Menampilkan menu untuk menambahkan tugas baru
+   */
   public void display() {
     System.out.println("=================================");
     System.out.println("          TAMBAHKAN TUGAS");

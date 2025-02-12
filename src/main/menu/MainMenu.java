@@ -2,6 +2,11 @@ package main.menu;
 
 import java.util.Scanner;
 
+/**
+ * Kelas ini berisi menu utama dari aplikasi Focus Timer.
+ * Menu ini akan menampilkan pilihan-pilihan yang tersedia
+ * dan akan mengarahkan pengguna ke menu yang sesuai.
+ */
 public class MainMenu {
   private final Scanner scanner = new Scanner(System.in);
 
@@ -23,18 +28,23 @@ public class MainMenu {
 
       switch (input) {
         case "1":
+          // Menu untuk menambahkan tugas baru
           new AddTaskMenu().display();
           break;
         case "2":
+          // Menu untuk memulai sesi kerja
           new StartWorkSessionMenu().display();
           break;
         case "3":
+          // Menu untuk mengatur timer
           new SettingsMenu().display();
           break;
         case "4":
+          // Menu untuk melihat log aktivitas
           new LogActivityMenu().display();
           break;
         case "5":
+          // Menu untuk membaca tentang Teknik Pomodoro
           new PomodoroMenu().display();
           break;
         case "6":

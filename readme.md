@@ -46,7 +46,7 @@ Proyek ini dikembangkan oleh tim berikut:
 - **Daffa Fauzan**: Kontribusi pada pengembangan fitur utama dan arsitektur sistem sebagai programmer.
 - **Siti Wahyuni**: Kontribusi pada pengembangan analisis objek studi.
 - **Bonafius Alvis**: Kontribusi pada pengembangan perancangan aplikasi seperti alur program.
-- **Thoriq**: Kontribusi pada pengembangan mockup aplikasi.
+- **Thoriq Nur robbi**: Kontribusi pada pengembangan mockup aplikasi.
 
 ## Kontak
 
